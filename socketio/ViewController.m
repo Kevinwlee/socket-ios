@@ -7,9 +7,12 @@
 //
 
 #import "ViewController.h"
+#import <SIOSocket/SIOSocket.h>
 
 @interface ViewController ()
 @property (weak, nonatomic) IBOutlet UIWebView *webView;
+@property (weak, nonatomic) IBOutlet UILabel *statLabel;
+@property (nonatomic, strong) SIOSocket *socket;
 
 @end
 
@@ -19,13 +22,23 @@
     [super viewDidLoad];
     
     // Do any additional setup after loading the view, typically from a nib.
+    
+    [SIOSocket socketWithHost: @"http://localhost:3000" response: ^(SIOSocket *socket) {
+        self.socket = socket;
+        [self.socket on:@"counter" callback:^(NSArray *args) {
+            NSString *countString = [args[0] stringValue];
+            self.statLabel.text = countString;
+        }];
+    }];
+    
+    NSURL *url = [NSURL URLWithString:@"http://localhost:3000/stats"];
+    NSURLRequest *request = [NSURLRequest requestWithURL:url];
+    [self.webView loadRequest:request];
+
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    NSURL *url = [NSURL URLWithString:@"http://localhost:3000/stats"];
-    NSURLRequest *request = [NSURLRequest requestWithURL:url];
-    [self.webView loadRequest:request];    
 }
 
 - (void)didReceiveMemoryWarning {
